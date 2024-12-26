@@ -137,7 +137,7 @@ class Player(Entity):
         W1 = pressed[K_w]
         A1 = pressed[K_a]
         D1 = pressed[K_d]
-        if Player.MainEkran == True:
+        if Player.MainEkran:
             if up or W1:
                 if self.onGround:
                     self.vel.y = -self.jump_strength
