@@ -1,11 +1,253 @@
 import pygame
 from pygame import *
+import sys
 
 font.init()
 WIGHT = 1200
 HEIGHT = 700
 SIZE = (WIGHT, HEIGHT)
 TABLO = 50
+
+mas_answer1_wight_l = 50
+mas_answer1_wight_r = 149
+mas_answer1_height_l = HEIGHT // 2 + 100
+mas_answer1_height_r = mas_answer1_height_l + 49
+mas_answer2_wight_l = 250
+mas_answer2_wight_r = mas_answer2_wight_l + 99
+mas_answer2_height_l = HEIGHT // 2 + 100
+mas_answer2_height_r = mas_answer2_height_l + 49
+mas_rest_height_l = WIGHT - 240
+mas_rest_height_r = mas_rest_height_l + 119
+mas_rest_wight_l = 10
+mas_rest_wight_r = mas_rest_wight_l + 49
+mas_help_wight_l = WIGHT - 110
+mas_help_wight_r = mas_help_wight_l + 99
+mas_help_height_l = 10
+mas_help_height_r = mas_help_height_l + 49
+window = pygame.display.set_mode((SIZE[0], SIZE[1]))
+SCREEN_SIZE = pygame.Rect((0, 0, WIGHT, HEIGHT))
+pygame.display.set_caption('Lost in Forest')
+try:
+    logo = pygame.image.load('logotip.png')
+    pygame.display.set_icon(logo)
+except pygame.error as e:
+    print(f"Ошибка загрузки логотипа: {e}")
+
+TILE_SIZE = 40
+
+# шрифты
+myfont = pygame.font.SysFont('arial', 31)
+myfont1 = pygame.font.SysFont('colibri', 28)
+myfont2 = pygame.font.SysFont('arial', 28, italic=True)
+myfont3 = pygame.font.SysFont('arial', 26, italic=True)
+myfont_vybor = pygame.font.SysFont('arial', 28, bold=True)
+GRAVITY = pygame.Vector2((0, 0.3))
+
+
+# классы
+class Entity(pygame.sprite.Sprite):
+    def __init__(self, color, pos, *groups):
+        super().__init__(*groups)
+        self.image = Surface((TILE_SIZE, TILE_SIZE))
+        self.image.fill(color)
+        self.rect = self.image.get_rect(topleft=pos)
+
+
+class Player(Entity):
+    MainEkran = True
+    vstrecha = 0
+    mon = 0
+    mon2 = 0
+    vopros = 0
+    jk = False
+    lava_death = False
+    is_game = False
+    pers = 2
+    ikonka = 0
+    level_count = 1
+    answer1 = ''
+    answer2 = ''
+    question1 = ''
+    question2 = ''
+    question3 = ''
+    question4 = ''
+    question5 = ''
+    question6 = ''
+    isexit = False
+    i = 0
+
+    def __init__(self, platforms, pos, *groups):
+        super().__init__(Color("#0000FF"), pos)
+        try:
+            if Player.pers == 1:
+                self.image = pygame.image.load('stepright1.jpg')
+                self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+                self.image.set_colorkey((255, 255, 255))
+            elif Player.pers == 3:
+                self.image = pygame.image.load('face' + str(Player.pers) + '.png')
+                self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+                self.image.set_colorkey((255, 255, 255))
+            else:
+                self.image = pygame.image.load('face2.jpg')
+                self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+                self.image.set_colorkey((0, 0, 0))
+        except pygame.error as e:
+            print(f"Ошибка загрузки изображения персонажа: {e}")
+            self.image.fill(Color("#0000FF"))
+        self.vel = pygame.Vector2((0, 0))
+        self.onGround = False
+        self.platforms = platforms
+        self.speed = 8
+        self.jump_strength = 10
+
+    # обрабатываем действия
+    def update(self):
+        pressed = pygame.key.get_pressed()
+        up = pressed[K_UP]
+        left = pressed[K_LEFT]
+        right = pressed[K_RIGHT]
+        running = pressed[K_SPACE]
+        W1 = pressed[K_w]
+        A1 = pressed[K_a]
+        D1 = pressed[K_d]
+        if Player.MainEkran:
+            if up or W1:
+                if self.onGround:
+                    self.vel.y = -self.jump_strength
+            if left or A1:
+                self.vel.x = -self.speed
+                if Player.pers != 2:
+                    if Player.pers == 1:
+                        self.image = pygame.image.load('stepright' + str((Player.ikonka // 11) % 3 + 1) + '.jpg')
+                        self.image = pygame.transform.flip(self.image, True, False)
+                        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+                        self.image.set_colorkey((255, 255, 255))
+                    elif Player.pers == 3:
+                        self.image = pygame.image.load('girlstepright' + str((Player.ikonka // 11) % 3 + 1) + '.png')
+                        self.image = pygame.transform.flip(self.image, True, False)
+                        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+                        self.image.set_colorkey((255, 255, 255))
+                else:
+                    self.image = pygame.image.load('2stepright' + str((Player.ikonka // 11) % 2 + 1) + '.jpg')
+                    self.image = pygame.transform.flip(self.image, True, False)
+                    self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+                    self.image.set_colorkey((0, 0, 0))
+            if right or D1:
+                self.vel.x = self.speed
+                if Player.pers != 2:
+                    if Player.pers == 1:
+                        self.image = pygame.image.load('stepright' + str((Player.ikonka // 11) % 3 + 1) + '.jpg')
+                        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+                        self.image.set_colorkey((255, 255, 255))
+                    if Player.pers == 3:
+                        self.image = pygame.image.load('girlstepright' + str((Player.ikonka // 11) % 3 + 1) + '.png')
+                        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+                        self.image.set_colorkey((255, 255, 255))
+                else:
+                    self.image = pygame.image.load('2stepright' + str((Player.ikonka // 11) % 2 + 1) + '.jpg')
+                    self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+                    self.image.set_colorkey((0, 0, 0))
+            if running:
+                self.vel.x *= 1.5
+            if not self.onGround:
+                self.vel += GRAVITY
+                if self.vel.y > 100: self.vel.y = 100
+            if not (left or right or D1 or A1):
+                self.vel.x = 0
+                if self.onGround:
+                    if Player.pers == 3:
+                        self.image = pygame.image.load('face' + str(Player.pers) + '.png')
+                        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+                        self.image.set_colorkey((255, 255, 255))
+                    elif Player.pers == 1:
+                        pass
+                    else:
+                        self.image = pygame.image.load('face2.jpg')
+                        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+                        self.image.set_colorkey((0, 0, 0))
+            self.rect.left += self.vel.x
+            self.collide(self.vel.x, 0, self.platforms)
+            self.rect.top += self.vel.y
+            self.onGround = False
+            self.collide(0, self.vel.y, self.platforms)
+
+    # прописываем столкновения объектов
+    def collide(self, xvel, yvel, platforms):
+        for p in platforms:
+            if pygame.sprite.collide_rect(self, p):
+                # прописываем столкновения с дверью
+                if isinstance(p, ExitBlock1) or isinstance(p, ExitBlock2):
+                    if Player.level_count == 1:
+                        Player.level_count = 2
+                        main_level()
+                    # else:
+                    #     Player.isexit = True
+                if isinstance(p, LavaBlock):
+                    Player.lava_death = True
+                # прописываем столкновения с торговцами
+                if isinstance(p, Torg1) or isinstance(p, Torg2):
+                    platforms.remove(p)
+                    if isinstance(p, Torg2):
+                        Player.question1 = 'Недавно вы участвовали в онлайн-викторине и выиграли 3000 рублей.'
+                        Player.question2 = 'Чтобы получить приз, нужно оплатить комиссию за перевод денег — 30 рублей.'
+                        Player.question3 = 'Вот ссылка *** на страницу, где надо ввести все данные карты для оплаты.'
+                        Player.question4 = 'По этим же реквизитам должны начислить вознаграждение.'
+                        Player.question5 = ''
+                        Player.question6 = ''
+                        Player.answer1 = 'Верю'
+                        Player.answer2 = 'Не верю!'
+                        Player.vstrecha = 1
+                        Player.vopros = 0
+                        Player.MainEkran = False
+                if isinstance(p, Torg3) or isinstance(p, Torg4):
+                    platforms.remove(p)
+                    if isinstance(p, Torg4):
+                        Player.question1 = 'Добрый день. Я являюсь представителем официального банка.'
+                        Player.question2 = 'В данный момент мошенники пытаются вздомать ваш личный кабинет.'
+                        Player.question3 = 'Чтобы защитить деньги, надо скорее перевести их на безопасный резервный счет.'
+                        Player.question4 = '**Со знакомого номера банка приходит СМС о заявке на резервирование счета.**'
+                        Player.question5 = 'Для верификации и подтверждения заявки сообщите номер, срок действия карты '
+                        Player.question6 = 'А так же три цифры с ее обратной стороны.'
+                        Player.answer1 = 'Конечно!'
+                        Player.answer2 = 'Это ложь'
+                        Player.vstrecha = 2
+                        Player.vopros = 0
+                        Player.MainEkran = False
+                if isinstance(p, Torg5) or isinstance(p, Torg6):
+                    platforms.remove(p)
+                    if isinstance(p, Torg6):
+                        Player.question1 = 'Здравствуйте! Я хотел бы рассказать вам о том,'
+                        Player.question2 = 'что недавно успешно инвестировал в компанию, которая вкладывается в перспективные'
+                        Player.question3 = 'зарубежные стартапы в сфере технологий искусственного интеллекта.'
+                        Player.question4 = 'Минимальный пакет акций стоит 10000 рублей и гарантирует 45% прибыли.'
+                        Player.question5 = 'За каждого приведенного друга можно получить еще 5%. Я заработал уже 70000руб.'
+                        Player.question6 = 'Предлагаю и вам стать инвестором — купить хотя бы стартовый пакет акций.'
+                        Player.answer1 = 'Хорошо'
+                        Player.answer2 = 'Не верю!'
+                        Player.vstrecha = 3
+                        Player.vopros = 0
+                        Player.MainEkran = False
+
+                if isinstance(p, Money):
+                    if Player.level_count == 1:
+                        Player.mon += 1
+                        Money_SOUND = pygame.mixer.Sound("MarioMoney.wav")
+                        pygame.mixer.Sound.play(Money_SOUND)
+                    elif Player.level_count == 2:
+                        Player.mon2 += 1
+                        Money_SOUND = pygame.mixer.Sound("MarioMoney.wav")
+                        pygame.mixer.Sound.play(Money_SOUND)
+                    p.kill()
+                if xvel > 0:
+                    self.rect.right = p.rect.left
+                if xvel < 0:
+                    self.rect.left = p.rect.right
+                if yvel > 0:
+                    self.rect.bottom = p.rect.top
+                    self.onGround = True
+                    self.vel.y = 0
+                if yvel < 0:
+                    self.rect.top = p.rect.bottom
 
 
 class Button:
@@ -61,271 +303,77 @@ class Button:
         return self.x, self.y, self.width + self.x, self.height + self.y
 
 
-window = pygame.display.set_mode((SIZE[0], SIZE[1]))
-SCREEN_SIZE = pygame.Rect((0, 0, WIGHT, HEIGHT))
-pygame.display.set_caption('Lost in Forest')
-logo = pygame.image.load('logotip.png')
-pygame.display.set_icon(logo)
-TILE_SIZE = 32
-
-myfont = pygame.font.SysFont('arial', 31)
-myfont1 = pygame.font.SysFont('colibri', 28)
-myfont2 = pygame.font.SysFont('arial', 28, italic=True)
-myfont3 = pygame.font.SysFont('arial', 26, italic=True)
-myfont_vybor = pygame.font.SysFont('arial', 28, bold=True)
-
-GRAVITY = pygame.Vector2((0, 0.3))
-
-
-class Entity(pygame.sprite.Sprite):
-    def __init__(self, color, pos, *groups):
-        super().__init__(*groups)
-        self.image = Surface((TILE_SIZE, TILE_SIZE))
-        self.image.fill(color)
-        self.rect = self.image.get_rect(topleft=pos)
-
-
-class Player(Entity):
-    MainEkran = True
-    vstrecha = 0
-    mon = 0
-    mon2 = 0
-    vopros = 0
-    jk = False
-    lava_death = False
-    is_game = False
-    pers = 2
-    i = 0
-    level_count = 1
-    answer1 = ''
-    answer2 = ''
-    question1 = ''
-    question2 = ''
-    question3 = ''
-    question4 = ''
-    question5 = ''
-    question6 = ''
-    isexit = False
-
-    def __init__(self, platforms, pos, *groups):
-        super().__init__(Color("#0000FF"), pos)
-        if Player.pers == 1:
-            self.image = pygame.image.load('stepright1.jpg')
-            self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
-            self.image.set_colorkey((255, 255, 255))
-        elif Player.pers == 3:
-            self.image = pygame.image.load('face' + str(Player.pers) + '.png')
-            self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
-            self.image.set_colorkey((255, 255, 255))
-        else:
-            self.image = pygame.image.load('face2.jpg')
-            self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
-            self.image.set_colorkey((0, 0, 0))
-        self.vel = pygame.Vector2((0, 0))
-        self.onGround = False
-        self.platforms = platforms
-        self.speed = 8
-        self.jump_strength = 10
-
-    # обрабатываем действия
-    def update(self):
-        pressed = pygame.key.get_pressed()
-        up = pressed[K_UP]
-        left = pressed[K_LEFT]
-        right = pressed[K_RIGHT]
-        running = pressed[K_SPACE]
-        W1 = pressed[K_w]
-        A1 = pressed[K_a]
-        D1 = pressed[K_d]
-        if Player.MainEkran:
-            if up or W1:
-                if self.onGround:
-                    self.vel.y = -self.jump_strength
-            if left or A1:
-                self.vel.x = -self.speed
-                if Player.pers != 2:
-                    if Player.pers == 1:
-                        self.image = pygame.image.load('stepright' + str((Player.i // 11) % 3 + 1) + '.jpg')
-                        self.image = pygame.transform.flip(self.image, True, False)
-                        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
-                        self.image.set_colorkey((255, 255, 255))
-                    elif Player.pers == 3:
-                        self.image = pygame.image.load('girlstepright' + str((Player.i // 11) % 3 + 1) + '.png')
-                        self.image = pygame.transform.flip(self.image, True, False)
-                        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
-                        self.image.set_colorkey((255, 255, 255))
-                else:
-                    self.image = pygame.image.load('2stepright' + str((Player.i // 11) % 2 + 1) + '.jpg')
-                    self.image = pygame.transform.flip(self.image, True, False)
-                    self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
-                    self.image.set_colorkey((0, 0, 0))
-            if right or D1:
-                self.vel.x = self.speed
-                if Player.pers != 2:
-                    if Player.pers == 1:
-                        self.image = pygame.image.load('stepright' + str((Player.i // 11) % 3 + 1) + '.jpg')
-                        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
-                        self.image.set_colorkey((255, 255, 255))
-                    if Player.pers == 3:
-                        self.image = pygame.image.load('girlstepright' + str((Player.i // 11) % 3 + 1) + '.png')
-                        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
-                        self.image.set_colorkey((255, 255, 255))
-                else:
-                    self.image = pygame.image.load('2stepright' + str((Player.i // 11) % 2 + 1) + '.jpg')
-                    self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
-                    self.image.set_colorkey((0, 0, 0))
-            if running:
-                self.vel.x *= 1.5
-            if not self.onGround:
-                self.vel += GRAVITY
-                if self.vel.y > 100: self.vel.y = 100
-            if not (left or right or D1 or A1):
-                self.vel.x = 0
-                if self.onGround:
-                    if Player.pers == 3:
-                        self.image = pygame.image.load('face' + str(Player.pers) + '.png')
-                        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
-                        self.image.set_colorkey((255, 255, 255))
-                    elif Player.pers == 1:
-                        pass
-                    else:
-                        self.image = pygame.image.load('face2.jpg')
-                        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
-                        self.image.set_colorkey((0, 0, 0))
-            self.rect.left += self.vel.x
-            self.collide(self.vel.x, 0, self.platforms)
-            self.rect.top += self.vel.y
-            self.onGround = False
-            self.collide(0, self.vel.y, self.platforms)
-
-    # прописываем столкновения объектов
-    def collide(self, xvel, yvel, platforms):
-        for p in platforms:
-            if pygame.sprite.collide_rect(self, p):
-                # прописываем столкновения с дверью
-                if isinstance(p, ExitBlock1) or isinstance(p, ExitBlock2):
-                    if Player.level_count == 1:
-                        Player.level_count = 2
-                        main2()
-                    else:
-                        Player.isexit = True
-                if isinstance(p, LavaBlock):
-                    Player.lava_death = True
-                # прописываем столкновения с торговцами
-                if isinstance(p, Torg1) or isinstance(p, Torg2):
-                    platforms.remove(p)
-                    if isinstance(p, Torg2):
-                        Player.question1 = 'Недавно вы участвовали в онлайн-викторине и выиграли 3000 рублей.'
-                        Player.question2 = 'Чтобы получить приз, нужно оплатить комиссию за перевод денег — 30 рублей.'
-                        Player.question3 = 'Вот ссылка *** на страницу, где надо ввести все данные карты для оплаты.'
-                        Player.question4 = 'По этим же реквизитам должны начислить вознаграждение.'
-                        Player.question5 = ''
-                        Player.question6 = ''
-                        Player.answer1 = 'Верю'
-                        Player.answer2 = 'Не верю!'
-                        Player.vstrecha = 1
-                        Player.vopros = 0
-                        Player.MainEkran = False
-                if isinstance(p, Torg3) or isinstance(p, Torg4):
-                    platforms.remove(p)
-                    if isinstance(p, Torg4):
-                        Player.question1 = 'Добрый день. Я являюсь представителем официального банка.'
-                        Player.question2 = 'В данный момент мошенники пытаются вздомать ваш личный кабинет.'
-                        Player.question3 = 'Чтобы защитить деньги, надо скорее перевести их на безопасный резервный счет.'
-                        Player.question4 = '**Со знакомого номера банка приходит СМС о заявке на резервирование счета.**'
-                        Player.question5 = 'Для верификации и подтверждения заявки сообщите номер, срок действия карты '
-                        Player.question6 = 'А так же три цифры с ее обратной стороны.'
-                        Player.answer1 = 'Конечно!'
-                        Player.answer2 = 'Это ложь'
-                        Player.vstrecha = 2
-                        Player.vopros = 0
-                        Player.MainEkran = False
-                if isinstance(p, Torg5) or isinstance(p, Torg6):
-                    platforms.remove(p)
-                    if isinstance(p, Torg6):
-                        Player.question1 = 'Здравствуйте! Я хотел бы рассказать вам о том,'
-                        Player.question2 = 'что недавно успешно инвестировал в компанию, которая вкладывается в перспективные'
-                        Player.question3 = 'зарубежные стартапы в сфере технологий искусственного интеллекта.'
-                        Player.question4 = 'Минимальный пакет акций стоит 10000 рублей и гарантирует 45% прибыли.'
-                        Player.question5 = 'За каждого приведенного друга можно получить еще 5%. Я заработал уже 70000руб.'
-                        Player.question6 = 'Предлагаю и вам стать инвестором — купить хотя бы стартовый пакет акций.'
-                        Player.answer1 = 'Хорошо'
-                        Player.answer2 = 'Не верю!'
-                        Player.vstrecha = 3
-                        Player.vopros = 0
-                        Player.MainEkran = False
-                if isinstance(p, Money):
-                    if Player.level_count == 1:
-                        Player.mon += 1
-                        Money_SOUND = pygame.mixer.Sound("MarioMoney.wav")
-                        pygame.mixer.Sound.play(Money_SOUND)
-                    elif Player.level_count == 2:
-                        Player.mon2 += 1
-                        Money_SOUND = pygame.mixer.Sound("MarioMoney.wav")
-                        pygame.mixer.Sound.play(Money_SOUND)
-                    p.kill()
-                if xvel > 0:
-                    self.rect.right = p.rect.left
-                if xvel < 0:
-                    self.rect.left = p.rect.right
-                if yvel > 0:
-                    self.rect.bottom = p.rect.top
-                    self.onGround = True
-                    self.vel.y = 0
-                if yvel < 0:
-                    self.rect.top = p.rect.bottom
-
-
-# классы
+# объекты
 class Platform(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#DDDDDD"), pos, *groups)
-        self.image = pygame.image.load('Rock.png')
-        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+        try:
+            self.image = pygame.image.load('Rock.png')
+            self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+        except pygame.error as e:
+            print(f"Ошибка загрузки изображения платформы: {e}")
 
 
 class ExitBlock1(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
-        self.image = pygame.image.load('door(1).png')
-        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+        try:
+            self.image = pygame.image.load('door(1).png')
+            self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+        except pygame.error as e:
+            print(f"Ошибка загрузки изображения ExitBlock1: {e}")
 
 
 class ExitBlock2(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
-        self.image = pygame.image.load('door(2).png')
-        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+        try:
+            self.image = pygame.image.load('door(2).png')
+            self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+        except pygame.error as e:
+            print(f"Ошибка загрузки изображения ExitBlock2: {e}")
 
 
 class Leaves(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
-        self.image = pygame.image.load('List.gif')
-        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
-        self.image.set_colorkey((0, 0, 0))
+        try:
+            self.image = pygame.image.load('List.gif')
+            self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+            self.image.set_colorkey((0, 0, 0))
+        except pygame.error as e:
+            print(f"Ошибка загрузки изображения Leaves: {e}")
 
 
 class Derevo(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
-        self.image = pygame.image.load('Der.png')
-        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+        try:
+            self.image = pygame.image.load('Der.png')
+            self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+        except pygame.error as e:
+            print(f"Ошибка загрузки изображения Derevo: {e}")
 
 
 class PerevDer(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
-        self.image = pygame.image.load('PerevDer.png')
-        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+        try:
+            self.image = pygame.image.load('PerevDer.png')
+            self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+        except pygame.error as e:
+            print(f"Ошибка загрузки изображения PerevDer: {e}")
 
 
 class Money(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
-        self.image = pygame.image.load('money.png').convert()
-        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
-        self.image.set_colorkey((0, 0, 0))
+        try:
+            self.image = pygame.image.load('money.png').convert()
+            self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+            self.image.set_colorkey((0, 0, 0))
+        except pygame.error as e:
+            print(f"Ошибка загрузки изображения Money: {e}")
 
 
 class Torg1(Entity):
@@ -376,20 +424,26 @@ class Torg6(Entity):
         self.image.set_colorkey((0, 0, 0))
 
 
-class Pen(Entity):
+class Stump(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
-        self.image = pygame.image.load('Pen(3).png').convert()
-        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
-        self.image.set_colorkey((0, 0, 0))
+        try:
+            self.image = pygame.image.load('Pen(3).png').convert()
+            self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+            self.image.set_colorkey((0, 0, 0))
+        except pygame.error as e:
+            print(f"Ошибка загрузки изображения Stump: {e}")
 
 
 class LavaBlock(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
-        self.image = pygame.image.load('lava.png').convert()
-        self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
-        self.image.set_colorkey((0, 0, 0))
+        try:
+            self.image = pygame.image.load('lava.png').convert()
+            self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
+            self.image.set_colorkey((0, 0, 0))
+        except pygame.error as e:
+            print(f"Ошибка загрузки изображения LavaBlock: {e}")
 
 
 # прорисовка кадров
@@ -433,7 +487,7 @@ class CameraAwareLayeredUpdates(pygame.sprite.LayeredUpdates):
         return dirty
 
 
-def main():
+def main_level():
     pygame.init()
     screen = pygame.display.set_mode(SCREEN_SIZE.size)
     pygame.display.set_caption("Lost in Forest")
@@ -459,37 +513,17 @@ def main():
 
     timer = pygame.time.Clock()
     # рисуем уровень
-    level = [
-        "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
-        "P                                                                                                                                                                                           P",
-        "P                                                                                                                                                                                          EP",
-        "P                         $                                                                                    L                                                                  S        BP",
-        "P                    PPPPPPPPPPP                                                      LL                      LLL$                                  U                        PPPPPPPPPPPPPPPP",
-        "P                                                                                  NNNLLL                    LLDLL                                  J                    L                  P",
-        "P        S                                                                       PPPPPPPP                      D                             PPPPPPPPPPPP               LLL                 P",
-        "P    PPPPPPPP                 S                                                                                D                                                       LLDLL                P",
-        "P                   PPPPPPPPPPPPP                                                                      PPPPPPPPPPPPP                                                     D                  P",
-        "P                                                                                       Y                                                                    PPPPPPPPPPPPPPPP               P",
-        "P                                                                                       H                                                                                                   P",
-        "P         PPPPPPP                                                                      PPPPPPPP                                                 S                                           P",
-        "P                                                                                             PPPPPPPPP                                      PPPPPPPPPP                                     P",
-        "P                     PPPPPP             PPPPPPPP           $                                                 $                                                                             P",
-        "P                                                                                                           PPPPPPPP                                                                        P",
-        "P       S                                                                                                   P                                               PPPPPPPPPPPPPPP                 P",
-        "P   PPPPPPPPPPP                                               S                               PPPPPPPPPPPPPPP                                    P                                          P",
-        "P                     L                                  PPPPPPPP                       S     P                                                  P                                          P",
-        "P                    LLL                                                             PPPPPPPPPP                                        L       PPPPPPPP                                     P",
-        "P                   LLLLL                   T                                                                                         LLL                                                   P",
-        "P                     D                     G                                                                                        LLDLL                                   LL  $          P",
-        "P                     D                     S                                                         S       S       S                D                                    LLLNNN          P",
-        "PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP", ]
-
+    level = []
+    with open(f'level{Player.level_count}.txt', 'r') as file:
+        level = [line for line in file]
     platforms = pygame.sprite.Group()
     player = Player(platforms, (TILE_SIZE * 2, HEIGHT - TILE_SIZE - 5))
     level_width = len(level[0]) * TILE_SIZE
     level_height = len(level) * TILE_SIZE
     entities = CameraAwareLayeredUpdates(player, pygame.Rect(0, 0, level_width, level_height))
     x = y = 0
+
+    # прорисовываем уроввень
     for row in level:
         for col in row:
             if col == "P":
@@ -503,7 +537,7 @@ def main():
             elif col == "D":
                 Derevo((x, y), platforms, entities)
             elif col == "S":
-                Pen((x, y), platforms, entities)
+                Stump((x, y), platforms, entities)
             elif col == "$":
                 Money((x, y), platforms, entities)
             elif col == "T":
@@ -520,6 +554,8 @@ def main():
                 Torg5((x, y), platforms, entities)
             elif col == "J":
                 Torg6((x, y), platforms, entities)
+            elif col == "N":
+                PerevDer((x, y), platforms, entities)
             elif col == "K":
                 LavaBlock((x, y), platforms, entities)
 
@@ -538,16 +574,20 @@ def main():
             if e.type == KEYDOWN and e.key == K_ESCAPE:
                 return
 
+            # обрабатываем действия мыши
             if e.type == MOUSEBUTTONDOWN:
                 mouse_press = mouse.get_pos()
-                if mouse_press[0] in mas_help_wight and mouse_press[1] in mas_help_height:
-                    first_screen_open = 5
-                if mouse_press[0] in mas_rest_wight and mouse_press[1] in mas_rest_height:
-                    main()
+                if (mas_help_wight_l <= mouse_press[0] <= mas_help_wight_r and mas_help_height_l <=
+                        mouse_press[1] <= mas_help_height_r):
+                    first_screen_open = 3
+                if (mas_rest_wight_l <= mouse_press[0] <= mas_rest_wight_r and mas_rest_height_l <= mouse_press[1]
+                        <= mas_rest_height_r):
+                    main_level()
                     Player.mon = 1
 
         if isfinish == 1:
             continue
+        # кнопки
         key = pygame.key.get_pressed()
         if key[pygame.K_1] and first_screen_open == 1:
             first_screen_open = 2
@@ -752,6 +792,7 @@ def main():
             screen.blit(Igor, (50, 300))
             screen.blit(Yasha, (450, 300))
             screen.blit(Masha, (850, 300))
+
             pygame.mixer.music.pause()
             pygame.mixer.music.load('M(1).wav')
             pygame.mixer.music.play(-1)
@@ -760,7 +801,7 @@ def main():
             Player.is_game = True
             pygame.mixer.music.unpause()
             entities.update()
-            count = myfont.render(f'Монеты: {Player.mon}/8. Ещё {8 - Player.mon} монет', True, (255, 255, 255))
+            count = myfont.render(f'Монеты: {Player.mon}.', True, (255, 255, 255))
             question_field1 = myfont2.render(Player.question1, True, (255, 255, 255))
             question_field2 = myfont2.render(Player.question2, True, (255, 255, 255))
             question_field3 = myfont2.render(Player.question3, True, (255, 255, 255))
@@ -821,7 +862,8 @@ def main():
                 screen.blit(question_field6, (40, 330))
                 mouse_press = mouse.get_pos()
                 if Player.vopros == 1 and MOUSEBUTTONDOWN:
-                    if mouse_press[0] in mas_answer1_wight and mouse_press[1] in mas_answer1_height:
+                    if mas_answer1_wight_l <= mouse_press[0] <= mas_answer1_wight_r and mas_answer1_height_l <= \
+                            mouse_press[1] <= mas_answer1_height_r:
                         answer_sur1.fill((255, 165, 28))
                         screen.blit(answer_sur1, (50, HEIGHT // 2 + 100))
                         screen.blit(answer_field1, (60, HEIGHT // 2 + 15 + 100))
@@ -841,7 +883,8 @@ def main():
                             Player.vopros = 0
                             Player.MainEkran = True
                 else:
-                    if mouse_press[0] in mas_answer1_wight and mouse_press[1] in mas_answer1_height:
+                    if mas_answer1_wight_l <= mouse_press[0] <= mas_answer1_wight_r and mas_answer1_height_l <= \
+                            mouse_press[1] <= mas_answer1_height_r:
                         answer_sur1.fill((255, 165, 28))
                         screen.blit(answer_sur1, (50, HEIGHT // 2 + 100))
                         screen.blit(answer_field1, (60, HEIGHT // 2 + 15 + 100))
@@ -879,7 +922,8 @@ def main():
                             Player.vopros = 1
 
 
-                    elif mouse_press[0] in mas_answer2_wight and mouse_press[1] in mas_answer2_height:
+                    elif mas_answer2_wight_l <= mouse_press[0] <= mas_answer2_wight_r and mas_answer2_height_l <= \
+                            mouse_press[1] <= mas_answer2_height_r:
                         answer_sur2.fill((255, 165, 28))
                         screen.blit(answer_sur2, (250, HEIGHT // 2 + 100))
                         screen.blit(answer_field2, (260, HEIGHT // 2 + 15 + 100))
@@ -922,11 +966,11 @@ def main():
                         screen.blit(answer_sur2, (250, HEIGHT // 2 + 100))
                         screen.blit(answer_field2, (260, HEIGHT // 2 + 15 + 100))
 
-        Player.i += 1
+        Player.ikonka += 1
         pygame.display.update()
         timer.tick(60)
 
 
 # запуск игры
 if __name__ == "__main__":
-    main()
+    main_level()
