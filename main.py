@@ -28,13 +28,17 @@ window = pygame.display.set_mode((SIZE[0], SIZE[1]))
 SCREEN_SIZE = pygame.Rect((0, 0, WIGHT, HEIGHT))
 pygame.display.set_caption('Lost in Forest')
 try:
-    logo = pygame.image.load('logotip.png')
+    logo = pygame.image.load('data/logotip.png')
     pygame.display.set_icon(logo)
 except pygame.error as e:
     print(f"Ошибка загрузки логотипа: {e}")
 
 TILE_SIZE = 40
-
+with open('data/level1.txt', 'r') as file:
+    level1 = [line for line in file]
+with open('data/level2.txt', 'r') as file:
+    level2 = [line for line in file]
+level = level1
 # шрифты
 myfont = pygame.font.SysFont('arial', 31)
 myfont1 = pygame.font.SysFont('colibri', 28)
@@ -74,21 +78,20 @@ class Player(Entity):
     question5 = ''
     question6 = ''
     isexit = False
-    i = 0
 
     def __init__(self, platforms, pos, *groups):
         super().__init__(Color("#0000FF"), pos)
         try:
             if Player.pers == 1:
-                self.image = pygame.image.load('stepright1.jpg')
+                self.image = pygame.image.load('data/stepright1.jpg')
                 self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
                 self.image.set_colorkey((255, 255, 255))
             elif Player.pers == 3:
-                self.image = pygame.image.load('face' + str(Player.pers) + '.png')
+                self.image = pygame.image.load('data/face' + str(Player.pers) + '.png')
                 self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
                 self.image.set_colorkey((255, 255, 255))
             else:
-                self.image = pygame.image.load('face2.jpg')
+                self.image = pygame.image.load('data/face2.jpg')
                 self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
                 self.image.set_colorkey((0, 0, 0))
         except pygame.error as e:
@@ -118,17 +121,17 @@ class Player(Entity):
                 self.vel.x = -self.speed
                 if Player.pers != 2:
                     if Player.pers == 1:
-                        self.image = pygame.image.load('stepright' + str((Player.ikonka // 11) % 3 + 1) + '.jpg')
+                        self.image = pygame.image.load('data/stepright' + str((Player.ikonka // 11) % 3 + 1) + '.jpg')
                         self.image = pygame.transform.flip(self.image, True, False)
                         self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
                         self.image.set_colorkey((255, 255, 255))
                     elif Player.pers == 3:
-                        self.image = pygame.image.load('girlstepright' + str((Player.ikonka // 11) % 3 + 1) + '.png')
+                        self.image = pygame.image.load('data/girlstepright' + str((Player.ikonka // 11) % 3 + 1) + '.png')
                         self.image = pygame.transform.flip(self.image, True, False)
                         self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
                         self.image.set_colorkey((255, 255, 255))
                 else:
-                    self.image = pygame.image.load('2stepright' + str((Player.ikonka // 11) % 2 + 1) + '.jpg')
+                    self.image = pygame.image.load('data/2stepright' + str((Player.ikonka // 11) % 2 + 1) + '.jpg')
                     self.image = pygame.transform.flip(self.image, True, False)
                     self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
                     self.image.set_colorkey((0, 0, 0))
@@ -136,15 +139,15 @@ class Player(Entity):
                 self.vel.x = self.speed
                 if Player.pers != 2:
                     if Player.pers == 1:
-                        self.image = pygame.image.load('stepright' + str((Player.ikonka // 11) % 3 + 1) + '.jpg')
+                        self.image = pygame.image.load('data/stepright' + str((Player.ikonka // 11) % 3 + 1) + '.jpg')
                         self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
                         self.image.set_colorkey((255, 255, 255))
                     if Player.pers == 3:
-                        self.image = pygame.image.load('girlstepright' + str((Player.ikonka // 11) % 3 + 1) + '.png')
+                        self.image = pygame.image.load('data/girlstepright' + str((Player.ikonka // 11) % 3 + 1) + '.png')
                         self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
                         self.image.set_colorkey((255, 255, 255))
                 else:
-                    self.image = pygame.image.load('2stepright' + str((Player.ikonka // 11) % 2 + 1) + '.jpg')
+                    self.image = pygame.image.load('data/2stepright' + str((Player.ikonka // 11) % 2 + 1) + '.jpg')
                     self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
                     self.image.set_colorkey((0, 0, 0))
             if running:
@@ -156,13 +159,13 @@ class Player(Entity):
                 self.vel.x = 0
                 if self.onGround:
                     if Player.pers == 3:
-                        self.image = pygame.image.load('face' + str(Player.pers) + '.png')
+                        self.image = pygame.image.load('data/face' + str(Player.pers) + '.png')
                         self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
                         self.image.set_colorkey((255, 255, 255))
                     elif Player.pers == 1:
                         pass
                     else:
-                        self.image = pygame.image.load('face2.jpg')
+                        self.image = pygame.image.load('data/face2.jpg')
                         self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
                         self.image.set_colorkey((0, 0, 0))
             self.rect.left += self.vel.x
@@ -177,11 +180,7 @@ class Player(Entity):
             if pygame.sprite.collide_rect(self, p):
                 # прописываем столкновения с дверью
                 if isinstance(p, ExitBlock1) or isinstance(p, ExitBlock2):
-                    if Player.level_count == 1:
-                        Player.level_count = 2
-                        main_level()
-                    # else:
-                    #     Player.isexit = True
+                    Player.isexit = True
                 if isinstance(p, LavaBlock):
                     Player.lava_death = True
                 # прописываем столкновения с торговцами
@@ -231,11 +230,11 @@ class Player(Entity):
                 if isinstance(p, Money):
                     if Player.level_count == 1:
                         Player.mon += 1
-                        Money_SOUND = pygame.mixer.Sound("MarioMoney.wav")
+                        Money_SOUND = pygame.mixer.Sound("data/MarioMoney.wav")
                         pygame.mixer.Sound.play(Money_SOUND)
                     elif Player.level_count == 2:
                         Player.mon2 += 1
-                        Money_SOUND = pygame.mixer.Sound("MarioMoney.wav")
+                        Money_SOUND = pygame.mixer.Sound("data/MarioMoney.wav")
                         pygame.mixer.Sound.play(Money_SOUND)
                     p.kill()
                 if xvel > 0:
@@ -308,7 +307,7 @@ class Platform(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#DDDDDD"), pos, *groups)
         try:
-            self.image = pygame.image.load('Rock.png')
+            self.image = pygame.image.load('data/Rock.png')
             self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
         except pygame.error as e:
             print(f"Ошибка загрузки изображения платформы: {e}")
@@ -318,7 +317,7 @@ class ExitBlock1(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
         try:
-            self.image = pygame.image.load('door(1).png')
+            self.image = pygame.image.load('data/door(1).png')
             self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
         except pygame.error as e:
             print(f"Ошибка загрузки изображения ExitBlock1: {e}")
@@ -328,7 +327,7 @@ class ExitBlock2(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
         try:
-            self.image = pygame.image.load('door(2).png')
+            self.image = pygame.image.load('data/door(2).png')
             self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
         except pygame.error as e:
             print(f"Ошибка загрузки изображения ExitBlock2: {e}")
@@ -338,7 +337,7 @@ class Leaves(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
         try:
-            self.image = pygame.image.load('List.gif')
+            self.image = pygame.image.load('data/List.gif')
             self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
             self.image.set_colorkey((0, 0, 0))
         except pygame.error as e:
@@ -349,7 +348,7 @@ class Derevo(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
         try:
-            self.image = pygame.image.load('Der.png')
+            self.image = pygame.image.load('data/Der.png')
             self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
         except pygame.error as e:
             print(f"Ошибка загрузки изображения Derevo: {e}")
@@ -359,7 +358,7 @@ class PerevDer(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
         try:
-            self.image = pygame.image.load('PerevDer.png')
+            self.image = pygame.image.load('data/PerevDer.png')
             self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
         except pygame.error as e:
             print(f"Ошибка загрузки изображения PerevDer: {e}")
@@ -369,7 +368,7 @@ class Money(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
         try:
-            self.image = pygame.image.load('money.png').convert()
+            self.image = pygame.image.load('data/money.png').convert()
             self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
             self.image.set_colorkey((0, 0, 0))
         except pygame.error as e:
@@ -379,7 +378,7 @@ class Money(Entity):
 class Torg1(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
-        self.image = pygame.image.load('Torg(5).png').convert()
+        self.image = pygame.image.load('data/Torg(5).png').convert()
         self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
         self.image.set_colorkey((0, 0, 0))
 
@@ -387,7 +386,7 @@ class Torg1(Entity):
 class Torg2(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
-        self.image = pygame.image.load('Torg(8).png').convert()
+        self.image = pygame.image.load('data/Torg(8).png').convert()
         self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
         self.image.set_colorkey((0, 0, 0))
 
@@ -395,7 +394,7 @@ class Torg2(Entity):
 class Torg3(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
-        self.image = pygame.image.load('Torg(5).png').convert()
+        self.image = pygame.image.load('data/Torg(5).png').convert()
         self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
         self.image.set_colorkey((0, 0, 0))
 
@@ -403,7 +402,7 @@ class Torg3(Entity):
 class Torg4(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
-        self.image = pygame.image.load('Torg(8).png').convert()
+        self.image = pygame.image.load('data/Torg(8).png').convert()
         self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
         self.image.set_colorkey((0, 0, 0))
 
@@ -411,7 +410,7 @@ class Torg4(Entity):
 class Torg5(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
-        self.image = pygame.image.load('Torg(5).png').convert()
+        self.image = pygame.image.load('data/Torg(5).png').convert()
         self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
         self.image.set_colorkey((0, 0, 0))
 
@@ -419,7 +418,7 @@ class Torg5(Entity):
 class Torg6(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
-        self.image = pygame.image.load('Torg(8).png').convert()
+        self.image = pygame.image.load('data/Torg(8).png').convert()
         self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
         self.image.set_colorkey((0, 0, 0))
 
@@ -428,7 +427,7 @@ class Stump(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
         try:
-            self.image = pygame.image.load('Pen(3).png').convert()
+            self.image = pygame.image.load('data/Pen(3).png').convert()
             self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
             self.image.set_colorkey((0, 0, 0))
         except pygame.error as e:
@@ -439,7 +438,7 @@ class LavaBlock(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#0033FF"), pos, *groups)
         try:
-            self.image = pygame.image.load('lava.png').convert()
+            self.image = pygame.image.load('data/lava.png').convert()
             self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
             self.image.set_colorkey((0, 0, 0))
         except pygame.error as e:
@@ -493,14 +492,12 @@ def main_level():
     pygame.display.set_caption("Lost in Forest")
     # обрабатываем действия
     # музыка
-    pygame.mixer.music.load('LESFON.wav')
+    pygame.mixer.music.load('data/LESFON.wav')
     pygame.mixer.music.play(-1)
     pygame.mixer.music.pause()
+    BUTTON_SOUND = pygame.mixer.Sound("data/Button.wav")
 
-    # ЗВУКИ
-    BUTTON_SOUND = pygame.mixer.Sound("Button.wav")
-
-    bg = pygame.image.load('trees.jpg').convert()
+    bg = pygame.image.load('data/trees.jpg').convert()
     bg = pygame.transform.scale(bg, (WIGHT, HEIGHT))
     SIZE = (WIGHT, HEIGHT)
 
@@ -514,8 +511,9 @@ def main_level():
     timer = pygame.time.Clock()
     # рисуем уровень
     level = []
-    with open(f'level{Player.level_count}.txt', 'r') as file:
-        level = [line for line in file]
+    with open('data/level1.txt', 'r') as file:
+        level1 = [line for line in file]
+    level = level1
     platforms = pygame.sprite.Group()
     player = Player(platforms, (TILE_SIZE * 2, HEIGHT - TILE_SIZE - 5))
     level_width = len(level[0]) * TILE_SIZE
@@ -567,6 +565,8 @@ def main_level():
 
     # основной цикл
     while 1 and Player.level_count == 1:
+        if Player.isexit:
+            first_screen_open = 6
         for e in pygame.event.get():
             if e.type == QUIT or Player.level_count != 1:
                 return
@@ -756,6 +756,8 @@ def main_level():
                         pygame.mixer.Sound.play(BUTTON_SOUND)
                         pygame.time.delay(300)
                         first_screen_open = 4
+                        if Player.is_game:
+                            first_screen_open = 5
                 else:
                     button.fill((13, 162, 58))
             else:
@@ -767,7 +769,7 @@ def main_level():
             window.blit(first_screen, (0, 0))
         elif first_screen_open == 4:
             first_screen = pygame.Surface(SIZE)
-            vybor_fon = pygame.image.load('vybor_fon.jpg')
+            vybor_fon = pygame.image.load('data/vybor_fon.jpg')
             vybor_fon = pygame.transform.scale(vybor_fon, (WIGHT, HEIGHT))
             screen.blit(first_screen, (0, 0))
             Vybor_field = myfont_vybor.render('Выберите персонажа:', True, (255, 255, 255))
@@ -775,11 +777,11 @@ def main_level():
             Yasha_field1 = myfont_vybor.render('Яша(Y)', True, (255, 255, 255))
             Masha_field1 = myfont_vybor.render('Маша(M)', True, (255, 255, 255))
 
-            Igor = pygame.image.load('stepright1.jpg')
+            Igor = pygame.image.load('data/stepright1.jpg')
             Igor.set_colorkey((255, 255, 255))
-            Yasha = pygame.image.load('face2.jpg')
+            Yasha = pygame.image.load('data/face2.jpg')
             Yasha.set_colorkey((0, 0, 0))
-            Masha = pygame.image.load('face3.png')
+            Masha = pygame.image.load('data/face3.png')
             Masha.set_colorkey((255, 255, 255))
             Igor = pygame.transform.scale(Igor, (TILE_SIZE * 6, TILE_SIZE * 7))
             Yasha = pygame.transform.scale(Yasha, (TILE_SIZE * 6, TILE_SIZE * 6))
@@ -794,7 +796,7 @@ def main_level():
             screen.blit(Masha, (850, 300))
 
             pygame.mixer.music.pause()
-            pygame.mixer.music.load('M(1).wav')
+            pygame.mixer.music.load('data/M(1).wav')
             pygame.mixer.music.play(-1)
             pygame.mixer.music.pause()
         elif first_screen_open == 5:
@@ -835,18 +837,18 @@ def main_level():
             screen.blit(restart_field, (WIGHT - 230, 25))
 
             if Player.vstrecha != 0:
-                les_fon = pygame.image.load('les_fon.png')
+                les_fon = pygame.image.load('data/les_fon.png')
                 les_fon = pygame.transform.scale(les_fon, (WIGHT, HEIGHT))
-                torg_up = pygame.image.load('TorgUp.png')
+                torg_up = pygame.image.load('data/TorgUp.png')
                 torg_up = pygame.transform.scale(torg_up, (TILE_SIZE * 4 + 15, TILE_SIZE * 4))
-                torg_down = pygame.image.load('TorgDown.png')
+                torg_down = pygame.image.load('data/TorgDown.png')
                 torg_down = pygame.transform.scale(torg_down, (TILE_SIZE * 4 + 15, TILE_SIZE * 4))
                 if Player.pers != 2:
-                    hero = pygame.image.load('face' + str(Player.pers) + '.png')
+                    hero = pygame.image.load('data/face' + str(Player.pers) + '.png')
                     hero = pygame.transform.scale(hero, (TILE_SIZE * 4, TILE_SIZE * 4))
                     hero.set_colorkey((255, 255, 255))
                 else:
-                    hero = pygame.image.load('face2.jpg')
+                    hero = pygame.image.load('data/face2.jpg')
                     hero = pygame.transform.scale(hero, (TILE_SIZE * 4, TILE_SIZE * 4))
                     hero.set_colorkey((0, 0, 0))
                 screen.blit(les_fon, (0, 0))
@@ -965,7 +967,47 @@ def main_level():
                         screen.blit(answer_field1, (60, HEIGHT // 2 + 15 + 100))
                         screen.blit(answer_sur2, (250, HEIGHT // 2 + 100))
                         screen.blit(answer_field2, (260, HEIGHT // 2 + 15 + 100))
+        elif first_screen_open == 6:
+            txt1 = myfont.render(str("Молодец! Ты собрал ") + str(
+                Player.mon) + " монеты и помог ребятам выйти из Загадочного леса!", True, (0, 0, 0))
+            if Player.mon < 0:
+                txt1 = myfont.render(f"По итогам игры ты ушел в долг на {-Player.mon}(", True, (0, 0, 0))
+            if Player.mon < 3:
+                txt2 = myfont.render("У вас не плохой результат, но вы можете лучше. Попробуйте ещё раз!", True,
+                                     (0, 0, 0))
+                txt3 = myfont.render("Вы моете усовершенствовать свои знания по финансовой грамоте на сайте:", True,
+                                     (0, 0, 0))
+                txt4 = myfont.render("https://fincult.info/", True, (0, 0, 0))
 
+            elif Player.mon < 6:
+                txt2 = myfont.render("У вас не плохой результат, но вы можете лучше. Попробуйте ещё раз.", True,
+                                     (0, 0, 0))
+                txt3 = myfont.render("Вы моете усовершенствовать свои знания по финансовой грамоте на сайте:", True,
+                                     (0, 0, 0))
+                txt4 = myfont.render("https://fincult.info/", True, (0, 0, 0))
+
+            elif Player.mon <= 8:
+                txt2 = myfont.render("Ваш результат превосходен. Продолжайте в том же духе!", True, (0, 0, 0))
+                txt3 = myfont.render("Вы моете усовершенствовать свои знания по финансовой грамоте на сайте:", True,
+                                     (0, 0, 0))
+                txt4 = myfont2.render("https://fincult.info/", True, (0, 0, 0))
+
+            final_screen = pygame.Surface(SIZE)
+            final_screen.fill((255, 255, 255))
+            image1 = pygame.image.load("data/QR code.png")
+
+            final_screen.blit(txt1, (150, 150))
+            final_screen.blit(txt2, (200, 200))
+            final_screen.blit(txt3, (150, 250))
+            final_screen.blit(txt4, (500, 300))
+            image1.set_colorkey((0, 0, 0))
+            image1 = pygame.transform.scale(image1, (200, 200))
+            final_screen.blit(image1, (500, 350))
+
+            screen.blit(final_screen, (0, 0))
+            isfinish = 1
+            pygame.display.update()
+            timer.tick(60)
         Player.ikonka += 1
         pygame.display.update()
         timer.tick(60)
