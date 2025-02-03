@@ -304,7 +304,7 @@ class Button:
         return self.x, self.y, self.width + self.x, self.height + self.y
 
 
-# объекты
+# объекты(классы)
 class Platform(Entity):
     def __init__(self, pos, *groups):
         super().__init__(Color("#DDDDDD"), pos, *groups)
