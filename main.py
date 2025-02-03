@@ -126,7 +126,8 @@ class Player(Entity):
                         self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
                         self.image.set_colorkey((255, 255, 255))
                     elif Player.pers == 3:
-                        self.image = pygame.image.load('data/girlstepright' + str((Player.ikonka // 11) % 3 + 1) + '.png')
+                        self.image = pygame.image.load(
+                            'data/girlstepright' + str((Player.ikonka // 11) % 3 + 1) + '.png')
                         self.image = pygame.transform.flip(self.image, True, False)
                         self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
                         self.image.set_colorkey((255, 255, 255))
@@ -143,7 +144,8 @@ class Player(Entity):
                         self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
                         self.image.set_colorkey((255, 255, 255))
                     if Player.pers == 3:
-                        self.image = pygame.image.load('data/girlstepright' + str((Player.ikonka // 11) % 3 + 1) + '.png')
+                        self.image = pygame.image.load(
+                            'data/girlstepright' + str((Player.ikonka // 11) % 3 + 1) + '.png')
                         self.image = pygame.transform.scale(self.image, (TILE_SIZE, TILE_SIZE))
                         self.image.set_colorkey((255, 255, 255))
                 else:
@@ -991,19 +993,16 @@ def main_level():
                 txt3 = myfont.render("Вы моете усовершенствовать свои знания по финансовой грамоте на сайте:", True,
                                      (0, 0, 0))
                 txt4 = myfont2.render("https://fincult.info/", True, (0, 0, 0))
-
             final_screen = pygame.Surface(SIZE)
             final_screen.fill((255, 255, 255))
             image1 = pygame.image.load("data/QR code.png")
-
-            final_screen.blit(txt1, (150, 150))
-            final_screen.blit(txt2, (200, 200))
-            final_screen.blit(txt3, (150, 250))
-            final_screen.blit(txt4, (500, 300))
+            final_screen.blit(txt1, (50, 150))
+            final_screen.blit(txt2, (50, 200))
+            final_screen.blit(txt3, (50, 250))
+            final_screen.blit(txt4, (50, 300))
             image1.set_colorkey((0, 0, 0))
             image1 = pygame.transform.scale(image1, (200, 200))
             final_screen.blit(image1, (500, 350))
-
             screen.blit(final_screen, (0, 0))
             isfinish = 1
             pygame.display.update()
